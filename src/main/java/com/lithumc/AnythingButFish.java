@@ -1,27 +1,27 @@
 package com.lithumc;
 
 import com.lithumc.config.AbfConfig;
-import net.fabricmc.api.ModInitializer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Main mod initializer for AnythingButFish.
- *
- * Loads the config once at startup and logs the active chance settings.
- * All random loot generation happens server-side in the FishingHook mixin.
- */
-public class AnythingButFish implements ModInitializer {
-
+@Mod(AnythingButFish.MOD_ID)
+public class AnythingButFish {
     public static final String MOD_ID = "anythingbutfish";
-    public static final Logger LOGGER  = LoggerFactory.getLogger(MOD_ID);
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    @Override
-    public void onInitialize() {
+    public AnythingButFish(FMLJavaModLoadingContext context) {
+        context.getModEventBus().addListener(this::setup);
+        MinecraftForge.EVENT_BUS.register(this);
+
         AbfConfig cfg = AbfConfig.get();
         LOGGER.info("[AnythingButFish] Mod initialized - good luck fishing!");
         LOGGER.info("[AnythingButFish] Config: item={}% entity={}% xp={}% gotaway={}%",
-                cfg.chanceItem, cfg.chanceEntity, cfg.chanceXp,
-                100 - cfg.thresholdXp());
+                cfg.chanceItem, cfg.chanceEntity, cfg.chanceXp, 100 - cfg.thresholdXp());
     }
+
+    private void setup(final FMLCommonSetupEvent event) {}
 }
