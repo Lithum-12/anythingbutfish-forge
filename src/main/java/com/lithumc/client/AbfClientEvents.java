@@ -8,7 +8,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.lwjgl.glfw.GLFW;
 
-// 注意这里加了 bus = Mod.EventBusSubscriber.Bus.MOD
 @Mod.EventBusSubscriber(modid = AnythingButFish.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class AbfClientEvents {
     public static final KeyMapping OPEN_CONFIG = new KeyMapping(

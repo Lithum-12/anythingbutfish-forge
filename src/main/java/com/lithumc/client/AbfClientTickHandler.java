@@ -9,7 +9,6 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-// 注意这里没有 bus = MOD，默认使用 FORGE 总线
 @Mod.EventBusSubscriber(modid = AnythingButFish.MOD_ID, value = Dist.CLIENT)
 public class AbfClientTickHandler {
     @SubscribeEvent

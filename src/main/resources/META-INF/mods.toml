@@ -7,6 +7,7 @@ modId="anythingbutfish"
 version="23.8"
 displayName="AnythingButFish"
 authors="LithumC"
+itemIcon="minecraft:fishing_rod"
 description='''
 Replaces vanilla fishing loot with completely random items, entities, and experience orbs.
 '''

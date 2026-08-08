@@ -2,7 +2,7 @@ package com.lithumc.config;
 
 import com.google.gson.*;
 import com.lithumc.AnythingButFish;
-import net.minecraftforge.fml.loading.FMLPaths; // ← 替换 FabricLoader
+import net.minecraftforge.fml.loading.FMLPaths;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;

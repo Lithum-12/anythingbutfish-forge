@@ -36,8 +36,8 @@ import java.util.stream.Collectors;
 /**
  * Mixin targeting FishingHook to replace vanilla fishing loot.
  * Forge 1.20.1 version:
- *  - 1.20.1 没有 EntitySpawnReason，使用 MobSpawnType
- *  - EntityType.create 签名为 (Level, CompoundTag, Consumer, BlockPos, MobSpawnType, boolean, boolean)
+ *  - 1.20.1 has no EntitySpawnReason; use MobSpawnType
+ *  - EntityType.create signature is (Level, CompoundTag, Consumer, BlockPos, MobSpawnType, boolean, boolean)
  */
 @Mixin(FishingHook.class)
 public abstract class FishingHookMixin {
@@ -58,17 +58,7 @@ public abstract class FishingHookMixin {
             "minecraft:ender_dragon", "minecraft:wither"
     );
 
-    @Unique private boolean abf$wasInWater = false;
-    @Unique private int     abf$retrieveResult = 0;
-
-    // -----------------------------------------------------------------------
-    // HEAD: snapshot in-water state before vanilla runs
-    // -----------------------------------------------------------------------
-    @Inject(method = "retrieve(Lnet/minecraft/world/item/ItemStack;)I", at = @At("HEAD"))
-    private void abf$beforeRetrieve(ItemStack usedItem, CallbackInfoReturnable<Integer> cir) {
-        FishingHook self = (FishingHook) (Object) this;
-        abf$wasInWater = !self.level().isClientSide && self.isInWater();
-    }
+    @Unique private int abf$retrieveResult = 0;
 
     // -----------------------------------------------------------------------
     // RETURN: capture vanilla result (<=0 means nothing was caught)
@@ -81,19 +71,19 @@ public abstract class FishingHookMixin {
     // -----------------------------------------------------------------------
     // TAIL: replace vanilla loot after it has run
     // -----------------------------------------------------------------------
-    @Inject(method = "retrieve(Lnet/minecraft/world/item/ItemStack;)I", at = @At("TAIL"))
+    @Inject(method = "retrieve(Lnet/minecraft/world/item/ItemStack;)I", at = @At("RETURN"))
     private void abf$afterRetrieve(ItemStack usedItem, CallbackInfoReturnable<Integer> cir) {
-        if (!abf$wasInWater) return;
-        abf$wasInWater = false;
-
         AbfConfig cfg = AbfConfig.get();
         if (!cfg.enabled) return;
+
+        FishingHook self = (FishingHook) (Object) this;
+        if (!self.isInWater()) return;
+
         if (cfg.waitForBite && abf$retrieveResult <= 0) {
             if (cfg.debugMode) LOGGER.info("[AnythingButFish] No bite - skipping loot.");
             return;
         }
 
-        FishingHook self = (FishingHook) (Object) this;
         Level level = self.level();
         if (level.isClientSide) return;
 
@@ -249,7 +239,6 @@ public abstract class FishingHookMixin {
                                                     ServerLevel level, ServerPlayer player,
                                                     AbfConfig cfg) {
         try {
-            // 1.20.1 签名: create(Level, CompoundTag, Consumer, BlockPos, MobSpawnType, boolean, boolean)
             T entity = type.create(level, (CompoundTag) null, (Consumer<T>) null, hook.blockPosition(),
                     MobSpawnType.COMMAND, false, false);
             if (entity != null) {
