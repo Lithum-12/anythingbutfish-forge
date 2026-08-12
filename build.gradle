@@ -1,76 +1,74 @@
 buildscript {
     repositories {
-        // SpongePowered 仓库（用于 Mixin 注解处理器）
         maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
         mavenCentral()
     }
     dependencies {
-        // MixinGradle 插件，用于处理 Mixin 的编译与重映射
         classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     }
 }
 
 plugins {
-    id 'eclipse' // Eclipse IDE 支持
-    id 'idea' // IntelliJ IDEA 支持
-    id 'net.minecraftforge.gradle' version '[6.0.16,6.2)' // ForgeGradle 插件
+    id 'eclipse'
+    id 'idea'
+    id 'net.minecraftforge.gradle' version '[6.0.16,6.2)'
 }
 
-apply plugin: 'org.spongepowered.mixin' // 应用 Mixin 插件
+apply plugin: 'org.spongepowered.mixin'
 
-group = mod_group_id // 模组组 ID
-version = mod_version // 模组版本
+group = mod_group_id
+version = mod_version
 
 base {
-    archivesName = mod_id // 生成的 jar 文件名
+    archivesName = mod_id
 }
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(17) // 使用 Java 17
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
 }
 
 minecraft {
-    mappings channel: mapping_channel, version: mapping_version // 使用官方映射
-    copyIdeResources = true // 将资源文件复制到 IDE 运行目录
+    mappings channel: mapping_channel, version: mapping_version
+    copyIdeResources = true
 
     runs {
         configureEach {
-            workingDirectory project.file('run') // 运行目录
-            property 'forge.logging.markers', 'REGISTRIES' // 日志标记
-            property 'forge.logging.console.level', 'debug' // 控制台日志级别
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
 
             mods {
                 "${mod_id}" {
-                    source sourceSets.main // 使用主源码集
+                    source sourceSets.main
                 }
             }
         }
 
         client {
-            property 'forge.enabledGameTestNamespaces', mod_id // 启用游戏测试
+            property 'forge.enabledGameTestNamespaces', mod_id
         }
 
         server {
             property 'forge.enabledGameTestNamespaces', mod_id
-            args '--nogui' // 无图形界面模式
+            args '--nogui'
         }
 
         data {
-            workingDirectory project.file('run-data') // 数据生成运行目录
-            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/') // 数据生成参数
+            workingDirectory project.file('run-data')
+            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
         }
     }
 }
 
 mixin {
-    add sourceSets.main, "${mod_id}.refmap.json" // 生成重映射文件
-    config "${mod_id}.mixins.json" // Mixin 配置文件
+    add sourceSets.main, "${mod_id}.refmap.json"
+    config "${mod_id}.mixins.json"
 }
 
-sourceSets.main.resources { srcDir 'src/generated/resources' } // 将生成资源加入主资源目录
+sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
-    // Xander Maven 仓库（用于 YACL，如果后续需要 GUI）
+    // Xander Maven (用于 YACL，如果后续需要 GUI)
     maven {
         name = 'Xander Maven'
         url = 'https://maven.isxander.dev/releases'
@@ -79,12 +77,12 @@ repositories {
 }
 
 dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}" // Forge 依赖
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
     // Mixin 注解处理器
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    // YACL（可选依赖）
+    // YACL (可选依赖)
     // compileOnly 保证编译时可用，但不会打包进你的 jar
     compileOnly fg.deobf("dev.isxander:yet-another-config-lib:${yacl_version}")
     // runtimeOnly 让你在 runClient 开发环境中能直接看到 GUI
@@ -103,7 +101,7 @@ tasks.named('processResources', ProcessResources).configure {
     inputs.properties replaceProperties
 
     filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
-        expand replaceProperties + [project: project] // 替换模板中的占位符
+        expand replaceProperties + [project: project]
     }
 }
 
@@ -119,9 +117,9 @@ tasks.named('jar', Jar).configure {
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
-    finalizedBy 'reobfJar' // 重新混淆 jar
+    finalizedBy 'reobfJar'
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8' // 使用 UTF-8 编码
+    options.encoding = 'UTF-8'
 }
