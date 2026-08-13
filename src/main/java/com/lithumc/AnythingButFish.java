@@ -18,7 +18,8 @@ public class AnythingButFish {
     public static final String MOD_ID = "anythingbutfish";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    public AnythingButFish(FMLJavaModLoadingContext context) {
+    public AnythingButFish() {
+        FMLJavaModLoadingContext context = FMLJavaModLoadingContext.get();
         context.getModEventBus().addListener(this::setup);
         MinecraftForge.EVENT_BUS.register(this);
 
