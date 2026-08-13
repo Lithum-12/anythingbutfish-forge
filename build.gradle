@@ -68,7 +68,7 @@ mixin {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
-    // Xander Maven (用于 YACL，如果后续需要 GUI)
+    // Xander Maven (for YACL, if GUI is needed in the future)
     maven {
         name = 'Xander Maven'
         url = 'https://maven.isxander.dev/releases'
@@ -79,13 +79,13 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    // Mixin 注解处理器
+    // Mixin annotation processor
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    // YACL (可选依赖)
-    // compileOnly 保证编译时可用，但不会打包进你的 jar
+    // YACL (optional dependency)
+    // compileOnly ensures it is available at compile time but not bundled into your jar
     compileOnly fg.deobf("dev.isxander:yet-another-config-lib:${yacl_version}")
-    // runtimeOnly 让你在 runClient 开发环境中能直接看到 GUI
+    // runtimeOnly allows you to see the GUI directly in the runClient development environment
     runtimeOnly fg.deobf("dev.isxander:yet-another-config-lib:${yacl_version}")
 }
 
