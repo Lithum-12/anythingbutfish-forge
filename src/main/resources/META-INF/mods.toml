@@ -1,10 +1,10 @@
 modLoader="javafml"
-loaderVersion="[47,)"
+loaderVersion="[46,50)"
 license="LGPLv3"
 
 [[mods]]
 modId="anythingbutfish"
-version="23.8"
+version="23.8-patch.1"
 displayName="AnythingButFish"
 authors="LithumC"
 itemIcon="minecraft:fishing_rod"
@@ -15,14 +15,14 @@ Replaces vanilla fishing loot with completely random items, entities, and experi
 [[dependencies.anythingbutfish]]
 modId="forge"
 mandatory=true
-versionRange="[47,)"
+versionRange="[46,50)"
 ordering="NONE"
 side="BOTH"
 
 [[dependencies.anythingbutfish]]
 modId="minecraft"
 mandatory=true
-versionRange="[1.20.1,1.21)"
+versionRange="[1.20,1.20.5)"
 ordering="NONE"
 side="BOTH"
 
