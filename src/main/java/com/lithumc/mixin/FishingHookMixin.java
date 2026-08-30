@@ -69,7 +69,7 @@ public abstract class FishingHookMixin {
     }
 
     // -----------------------------------------------------------------------
-    // TAIL: replace vanilla loot after it has run
+    // RETURN: safely override vanilla fishing loot
     // -----------------------------------------------------------------------
     @Inject(method = "retrieve(Lnet/minecraft/world/item/ItemStack;)I", at = @At("RETURN"))
     private void abf$afterRetrieve(ItemStack usedItem, CallbackInfoReturnable<Integer> cir) {
