@@ -8,8 +8,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.PostSpawnProcessor;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.FishingHook;
@@ -27,13 +29,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
  * Mixin targeting FishingHook to replace vanilla fishing loot.
- * NeoForge 1.21.3: MobSpawnType was renamed to EntitySpawnReason in 1.21.2, and
- * EntityType.create has no CompoundTag parameter since 1.21.
+ * 26.2: EntityType.create takes PostSpawnProcessor, and the per-type constants moved to EntityTypes.
  */
 @Mixin(FishingHook.class)
 public abstract class FishingHookMixin {
@@ -202,7 +202,7 @@ public abstract class FishingHookMixin {
             Set<String> excluded = cfg.entityPool.stream()
                     .map(e -> e.id).collect(Collectors.toSet());
             List<EntityType<?>> pool = BuiltInRegistries.ENTITY_TYPE.stream()
-                    .filter(et -> et != EntityType.PLAYER && et != EntityType.FISHING_BOBBER)
+                    .filter(et -> et != EntityTypes.PLAYER && et != EntityTypes.FISHING_BOBBER)
                     .filter(et -> {
                         String key = BuiltInRegistries.ENTITY_TYPE.getKey(et).toString();
                         String ns  = BuiltInRegistries.ENTITY_TYPE.getKey(et).getNamespace();
@@ -223,7 +223,7 @@ public abstract class FishingHookMixin {
                                                     ServerLevel level, ServerPlayer player,
                                                     AbfConfig cfg) {
         try {
-            T entity = type.create(level, (Consumer<T>) null, hook.blockPosition(),
+            T entity = type.create(level, PostSpawnProcessor.nop(), hook.blockPosition(),
                     EntitySpawnReason.COMMAND, false, false);
             if (entity != null) {
                 double x = hook.getX(), y = hook.getY(), z = hook.getZ();
@@ -242,8 +242,8 @@ public abstract class FishingHookMixin {
             // Fallback: spawn a pig. The wildcard cast keeps the result typed as Entity,
             // so no concrete animal class ends up in the bytecode
             try {
-                Entity pig = ((EntityType<?>) EntityType.PIG).create(level, null, hook.blockPosition(),
-                        EntitySpawnReason.COMMAND, false, false);
+                Entity pig = ((EntityType<?>) EntityTypes.PIG).create(level, PostSpawnProcessor.nop(),
+                        hook.blockPosition(), EntitySpawnReason.COMMAND, false, false);
                 if (pig != null) {
                     pig.setPos(hook.getX(), hook.getY(), hook.getZ());
                     applyArc(pig, hook.getX(), hook.getY(), hook.getZ(), player, cfg);
