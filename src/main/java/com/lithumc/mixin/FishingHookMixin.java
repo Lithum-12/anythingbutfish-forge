@@ -72,7 +72,7 @@ public abstract class FishingHookMixin {
         }
 
         Level level = self.level();
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
 
         Player owner = self.getPlayerOwner();
         if (!(owner instanceof ServerPlayer serverPlayer)) return;

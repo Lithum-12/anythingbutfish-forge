@@ -22,7 +22,7 @@ public class AnythingButFish {
                 cfg.chanceItem, cfg.chanceEntity, cfg.chanceXp, 100 - cfg.thresholdXp());
 
         // Registering with YACL absent would hand NeoForge a factory that returns null
-        if (FMLEnvironment.dist == Dist.CLIENT && AbfYaclBridge.isYaclPresent()) {
+        if (FMLEnvironment.getDist() == Dist.CLIENT && AbfYaclBridge.isYaclPresent()) {
             modContainer.registerExtensionPoint(
                     IConfigScreenFactory.class,
                     (container, screen) -> AbfYaclBridge.createConfigScreen(screen));

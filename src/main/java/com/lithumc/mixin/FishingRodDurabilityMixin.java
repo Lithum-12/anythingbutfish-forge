@@ -18,7 +18,7 @@ public class FishingRodDurabilityMixin {
     private void abf$preventDurabilityLoss(Level level, Player player, InteractionHand hand,
                                            CallbackInfoReturnable<InteractionResult> cir) {
         if (!AbfConfig.get().infiniteDurability) return;
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
 
         ItemStack stack = player.getItemInHand(hand);
         if (stack.isDamageableItem() && stack.getDamageValue() > 0) {
