@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'eclipse'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.107'
+    id 'net.neoforged.moddev' version '2.0.148'
 }
 
 group = mod_group_id
@@ -13,7 +13,7 @@ base {
 }
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(21)
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
 }
 
 // maven.neoforged.net 在本机 443/80 全部超时且 DNS 被污染，改用社区镜像 neoforged.forgecdn.net

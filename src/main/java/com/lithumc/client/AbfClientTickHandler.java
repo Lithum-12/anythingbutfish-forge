@@ -21,9 +21,9 @@ public class AbfClientTickHandler {
                 mc.setScreen(AbfYaclBridge.createConfigScreen(mc.screen));
             } else {
                 if (mc.player != null) {
-                    mc.player.displayClientMessage(Component.literal(
+                    mc.player.sendSystemMessage(Component.literal(
                             "[AnythingButFish] YACL is not installed. Edit config/anythingbutfish.json5 manually."
-                    ), false);
+                    ));
                 }
             }
         }
