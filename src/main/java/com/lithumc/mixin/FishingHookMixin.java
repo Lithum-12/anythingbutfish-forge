@@ -6,11 +6,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ExperienceOrb;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.FishingHook;
@@ -33,8 +32,8 @@ import java.util.stream.Collectors;
 
 /**
  * Mixin targeting FishingHook to replace vanilla fishing loot.
- * NeoForge 1.21.1: the spawn enum is still MobSpawnType here, and EntityType.create
- * lost its CompoundTag parameter in 1.21.
+ * NeoForge 1.21.3: MobSpawnType was renamed to EntitySpawnReason in 1.21.2, and
+ * EntityType.create has no CompoundTag parameter since 1.21.
  */
 @Mixin(FishingHook.class)
 public abstract class FishingHookMixin {
@@ -80,13 +79,11 @@ public abstract class FishingHookMixin {
         ServerLevel serverLevel = (ServerLevel) level;
 
         // Discard vanilla-spawned ItemEntities near the bobber
-        double bx = self.getX(), by = self.getY(), bz = self.getZ();
         serverLevel.getEntitiesOfClass(ItemEntity.class,
                 self.getBoundingBox().inflate(2.0)).forEach(Entity::discard);
 
-        level.playSound(null, bx, by, bz,
-                SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.NEUTRAL,
-                1.0F, 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F));
+        // No reel sound here: FishingRodItem.use plays FISHING_BOBBER_RETRIEVE
+        // unconditionally right after retrieve() returns
 
         if (cfg.debugMode)
             LOGGER.info("[AnythingButFish] {} reeled in - generating random loot!",
@@ -111,8 +108,7 @@ public abstract class FishingHookMixin {
         else if (roll < cfg.thresholdXp())     spawnXp(hook, level, player, cfg);
         else {
             // "The one that got away"
-            level.playSound(null, hook.getX(), hook.getY(), hook.getZ(),
-                    SoundEvents.FISHING_BOBBER_SPLASH, SoundSource.NEUTRAL, 0.25F, 1.0F);
+            player.playSound(SoundEvents.FISHING_BOBBER_SPLASH, 0.25F, 1.0F);
             if (cfg.debugMode) {
                 LOGGER.info("[AnythingButFish] The one that got away...");
                 player.sendSystemMessage(Component.literal("[ABF] The one that got away..."));
@@ -228,7 +224,7 @@ public abstract class FishingHookMixin {
                                                     AbfConfig cfg) {
         try {
             T entity = type.create(level, (Consumer<T>) null, hook.blockPosition(),
-                    MobSpawnType.COMMAND, false, false);
+                    EntitySpawnReason.COMMAND, false, false);
             if (entity != null) {
                 double x = hook.getX(), y = hook.getY(), z = hook.getZ();
                 entity.setPos(x, y, z);
@@ -243,10 +239,11 @@ public abstract class FishingHookMixin {
             }
         } catch (Exception e) {
             LOGGER.warn("[AnythingButFish] Failed to spawn {}: {}", type, e.getMessage());
-            // Fallback: spawn a pig
+            // Fallback: spawn a pig. The wildcard cast keeps the result typed as Entity,
+            // so no concrete animal class ends up in the bytecode
             try {
-                var pig = EntityType.PIG.create(level, null, hook.blockPosition(),
-                        MobSpawnType.COMMAND, false, false);
+                Entity pig = ((EntityType<?>) EntityType.PIG).create(level, null, hook.blockPosition(),
+                        EntitySpawnReason.COMMAND, false, false);
                 if (pig != null) {
                     pig.setPos(hook.getX(), hook.getY(), hook.getZ());
                     applyArc(pig, hook.getX(), hook.getY(), hook.getZ(), player, cfg);

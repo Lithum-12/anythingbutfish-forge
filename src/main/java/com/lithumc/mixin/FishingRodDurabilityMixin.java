@@ -2,7 +2,7 @@ package com.lithumc.mixin;
 
 import com.lithumc.config.AbfConfig;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.FishingRodItem;
 import net.minecraft.world.item.ItemStack;
@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class FishingRodDurabilityMixin {
     @Inject(method = "use", at = @At("RETURN"))
     private void abf$preventDurabilityLoss(Level level, Player player, InteractionHand hand,
-                                           CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir) {
+                                           CallbackInfoReturnable<InteractionResult> cir) {
         if (!AbfConfig.get().infiniteDurability) return;
         if (level.isClientSide) return;
 
