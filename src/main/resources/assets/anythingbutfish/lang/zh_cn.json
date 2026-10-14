@@ -2,6 +2,9 @@
   "mod.anythingbutfish.name": "就是不钓鱼",
   "mod.anythingbutfish.description": "将原版钓鱼战利品替换为完全随机的物品、实体和经验球。",
 
+  "key.categories.anythingbutfish": "就是不钓鱼",
+  "key.anythingbutfish.config": "打开就是不钓鱼配置界面",
+
   "config.anythingbutfish.title": "就是不钓鱼 配置",
 
   "config.anythingbutfish.cat.general": "常规",

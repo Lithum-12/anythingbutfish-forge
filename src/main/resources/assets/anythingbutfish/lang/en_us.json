@@ -2,6 +2,9 @@
   "mod.anythingbutfish.name": "AnythingButFish",
   "mod.anythingbutfish.description": "Replaces vanilla fishing loot with completely random items, entities, and experience orbs.",
 
+  "key.categories.anythingbutfish": "AnythingButFish",
+  "key.anythingbutfish.config": "Open AnythingButFish Config",
+
   "config.anythingbutfish.title": "AnythingButFish Config",
 
   "config.anythingbutfish.cat.general": "General",

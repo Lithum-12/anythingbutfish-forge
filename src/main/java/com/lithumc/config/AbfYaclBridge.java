@@ -2,9 +2,9 @@ package com.lithumc.config;
 
 import com.lithumc.AnythingButFish;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.fml.ModList;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.lang.reflect.Method;
 

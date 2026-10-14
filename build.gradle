@@ -1,20 +1,9 @@
-buildscript {
-    repositories {
-        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
-    }
-}
-
 plugins {
+    id 'java-library'
     id 'eclipse'
     id 'idea'
-    id 'net.minecraftforge.gradle' version '[6.0.16,6.2)'
+    id 'net.neoforged.moddev' version '2.0.107'
 }
-
-apply plugin: 'org.spongepowered.mixin'
 
 group = mod_group_id
 version = mod_version
@@ -24,102 +13,104 @@ base {
 }
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(17)
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
 }
 
-minecraft {
-    mappings channel: mapping_channel, version: mapping_version
-    copyIdeResources = true
-
-    runs {
-        configureEach {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                "${mod_id}" {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        client {
-            property 'forge.enabledGameTestNamespaces', mod_id
-        }
-
-        server {
-            property 'forge.enabledGameTestNamespaces', mod_id
-            args '--nogui'
-        }
-
-        data {
-            workingDirectory project.file('run-data')
-            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-        }
-    }
-}
-
-mixin {
-    add sourceSets.main, "${mod_id}.refmap.json"
-    config "${mod_id}.mixins.json"
-}
-
-sourceSets.main.resources { srcDir 'src/generated/resources' }
-
+// maven.neoforged.net 在本机 443/80 全部超时且 DNS 被污染，改用社区镜像 neoforged.forgecdn.net
 repositories {
-    // Xander Maven (用于 YACL，如果后续需要 GUI)
+    maven {
+        name = 'NeoForged Mirror'
+        url = 'https://neoforged.forgecdn.net/releases'
+    }
+    maven {
+        name = 'NeoForged Mirror Mojang Meta'
+        url = 'https://neoforged.forgecdn.net/mojang-meta'
+    }
+    mavenCentral()
     maven {
         name = 'Xander Maven'
         url = 'https://maven.isxander.dev/releases'
     }
-    mavenCentral()
 }
 
-dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+// MDG injects the official NeoForged repository itself; drop it so Gradle does not
+// wait for each unreachable CDN node before falling through to the mirror
+afterEvaluate {
+    repositories.removeAll {
+        it instanceof MavenArtifactRepository &&
+                it.url.toString().contains('maven.neoforged.net')
+    }
+}
 
-    // Mixin 注解处理器
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+neoForge {
+    // Parchment (可选，官方 Mojmap 即可编译)
+    version = project.neo_version
 
-    // YACL (可选依赖)
-    // compileOnly 保证编译时可用，但不会打包进你的 jar
-    compileOnly fg.deobf("dev.isxander:yet-another-config-lib:${yacl_version}")
-    // runtimeOnly 让你在 runClient 开发环境中能直接看到 GUI
-    runtimeOnly fg.deobf("dev.isxander:yet-another-config-lib:${yacl_version}")
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+            programArgument '--nogui'
+        }
+        data {
+            data()
+            programArguments.addAll '--mod', project.mod_id, '--all',
+                    '--output', file('src/generated/resources/').toString(),
+                    '--existing', file('src/main/resources/').toString()
+        }
+
+        configureEach {
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
 }
 
 tasks.named('processResources', ProcessResources).configure {
     var replaceProperties = [
             minecraft_version   : minecraft_version, minecraft_version_range: minecraft_version_range,
-            forge_version       : forge_version, forge_version_range: forge_version_range,
+            neo_version_range   : neo_version_range,
             loader_version_range: loader_version_range,
             mod_id              : mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
             mod_authors         : mod_authors, mod_description: mod_description,
     ]
-
     inputs.properties replaceProperties
 
-    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
         expand replaceProperties + [project: project]
     }
 }
 
-tasks.named('jar', Jar).configure {
-    manifest {
-        attributes([
-                "Specification-Title"     : mod_id,
-                "Specification-Vendor"    : mod_authors,
-                "Specification-Version"   : "1",
-                "Implementation-Title"    : project.name,
-                "Implementation-Version"  : project.jar.archiveVersion,
-                "Implementation-Vendor"   : mod_authors,
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
-    }
-    finalizedBy 'reobfJar'
+dependencies {
+    // MDG adds the NeoForge dependency itself from neoForge.version
+    // YACL (可选依赖): 编译时可见，运行时可缺省（反射加载）
+    compileOnly "dev.isxander:yet-another-config-lib:${yacl_version}"
+    // 开发运行时也加载，便于 runClient 直接测试 GUI
+    runtimeOnly "dev.isxander:yet-another-config-lib:${yacl_version}"
 }
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+}
+
+jar {
+    manifest {
+        attributes([
+                'MixinConfigs'            : "${mod_id}.mixins.json",
+                'Specification-Title'     : mod_id,
+                'Specification-Vendor'    : mod_authors,
+                'Specification-Version'   : '1',
+                'Implementation-Title'    : project.name,
+                'Implementation-Version'  : project.jar.archiveVersion,
+                'Implementation-Vendor'   : mod_authors,
+                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
 }

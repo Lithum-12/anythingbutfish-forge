@@ -2,14 +2,11 @@ package com.lithumc;
 
 import com.lithumc.config.AbfConfig;
 import com.lithumc.config.AbfYaclBridge;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.ConfigScreenHandler;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,22 +15,17 @@ public class AnythingButFish {
     public static final String MOD_ID = "anythingbutfish";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    public AnythingButFish(FMLJavaModLoadingContext context) {
-        context.getModEventBus().addListener(this::setup);
-        MinecraftForge.EVENT_BUS.register(this);
-
+    public AnythingButFish(ModContainer modContainer) {
         AbfConfig cfg = AbfConfig.get();
         LOGGER.info("[AnythingButFish] Mod initialized - good luck fishing!");
         LOGGER.info("[AnythingButFish] Config: item={}% entity={}% xp={}% gotaway={}%",
                 cfg.chanceItem, cfg.chanceEntity, cfg.chanceXp, 100 - cfg.thresholdXp());
 
-                        if (FMLEnvironment.dist == Dist.CLIENT) {
-                        ModLoadingContext.get().registerExtensionPoint(
-                                        ConfigScreenHandler.ConfigScreenFactory.class,
-                                        () -> new ConfigScreenHandler.ConfigScreenFactory(
-                                                        (minecraft, screen) -> AbfYaclBridge.createConfigScreen(screen)));
-                    }
+        // Registering with YACL absent would hand NeoForge a factory that returns null
+        if (FMLEnvironment.dist == Dist.CLIENT && AbfYaclBridge.isYaclPresent()) {
+            modContainer.registerExtensionPoint(
+                    IConfigScreenFactory.class,
+                    (container, screen) -> AbfYaclBridge.createConfigScreen(screen));
+        }
     }
-
-    private void setup(final FMLCommonSetupEvent event) {}
 }

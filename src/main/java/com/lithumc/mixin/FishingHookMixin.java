@@ -2,7 +2,6 @@ package com.lithumc.mixin;
 
 import com.lithumc.config.AbfConfig;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,7 +20,6 @@ import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -35,9 +33,8 @@ import java.util.stream.Collectors;
 
 /**
  * Mixin targeting FishingHook to replace vanilla fishing loot.
- * Forge 1.20.1 version:
- *  - 1.20.1 has no EntitySpawnReason; use MobSpawnType
- *  - EntityType.create signature is (Level, CompoundTag, Consumer, BlockPos, MobSpawnType, boolean, boolean)
+ * NeoForge 1.21.1: the spawn enum is still MobSpawnType here, and EntityType.create
+ * lost its CompoundTag parameter in 1.21.
  */
 @Mixin(FishingHook.class)
 public abstract class FishingHookMixin {
@@ -58,18 +55,8 @@ public abstract class FishingHookMixin {
             "minecraft:ender_dragon", "minecraft:wither"
     );
 
-    @Unique private int abf$retrieveResult = 0;
-
     // -----------------------------------------------------------------------
-    // RETURN: capture vanilla result (<=0 means nothing was caught)
-    // -----------------------------------------------------------------------
-    @Inject(method = "retrieve(Lnet/minecraft/world/item/ItemStack;)I", at = @At("RETURN"))
-    private void abf$captureResult(ItemStack usedItem, CallbackInfoReturnable<Integer> cir) {
-        abf$retrieveResult = cir.getReturnValue();
-    }
-
-    // -----------------------------------------------------------------------
-    // RETURN: safely override vanilla fishing loot
+    // RETURN: override vanilla loot on every exit of retrieve()
     // -----------------------------------------------------------------------
     @Inject(method = "retrieve(Lnet/minecraft/world/item/ItemStack;)I", at = @At("RETURN"))
     private void abf$afterRetrieve(ItemStack usedItem, CallbackInfoReturnable<Integer> cir) {
@@ -79,7 +66,8 @@ public abstract class FishingHookMixin {
         FishingHook self = (FishingHook) (Object) this;
         if (!self.isInWater()) return;
 
-        if (cfg.waitForBite && abf$retrieveResult <= 0) {
+        // RETURN also covers vanilla's guard exit, which returns 0
+        if (cfg.waitForBite && cir.getReturnValueI() <= 0) {
             if (cfg.debugMode) LOGGER.info("[AnythingButFish] No bite - skipping loot.");
             return;
         }
@@ -239,7 +227,7 @@ public abstract class FishingHookMixin {
                                                     ServerLevel level, ServerPlayer player,
                                                     AbfConfig cfg) {
         try {
-            T entity = type.create(level, (CompoundTag) null, (Consumer<T>) null, hook.blockPosition(),
+            T entity = type.create(level, (Consumer<T>) null, hook.blockPosition(),
                     MobSpawnType.COMMAND, false, false);
             if (entity != null) {
                 double x = hook.getX(), y = hook.getY(), z = hook.getZ();
@@ -257,7 +245,7 @@ public abstract class FishingHookMixin {
             LOGGER.warn("[AnythingButFish] Failed to spawn {}: {}", type, e.getMessage());
             // Fallback: spawn a pig
             try {
-                var pig = EntityType.PIG.create(level, (CompoundTag) null, null, hook.blockPosition(),
+                var pig = EntityType.PIG.create(level, null, hook.blockPosition(),
                         MobSpawnType.COMMAND, false, false);
                 if (pig != null) {
                     pig.setPos(hook.getX(), hook.getY(), hook.getZ());
