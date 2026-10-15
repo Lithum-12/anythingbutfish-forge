@@ -54,12 +54,6 @@ neoForge {
             server()
             programArgument '--nogui'
         }
-        data {
-            data()
-            programArguments.addAll '--mod', project.mod_id, '--all',
-                    '--output', file('src/generated/resources/').toString(),
-                    '--existing', file('src/main/resources/').toString()
-        }
 
         configureEach {
             logLevel = org.slf4j.event.Level.DEBUG
